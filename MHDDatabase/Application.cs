@@ -97,6 +97,10 @@ namespace MHDDatabase
                         break;              
                 }
             }
+            Console.WriteLine("Would you like to have a report generated?");
+            string answer = Console.ReadLine();
+            if (answer.ToLower().Equals("yes"))
+                listing.generateReport();
         }
     }
 }

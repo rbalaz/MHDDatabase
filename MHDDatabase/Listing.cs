@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace MHDDatabase
 {
@@ -69,6 +70,35 @@ namespace MHDDatabase
             Console.WriteLine("Times passed: " + passingData[0]);
             Console.WriteLine("Times not passed: " + passingData[1]);
             Console.WriteLine("Chance to pass: " + passingData[0] * 100 / (passingData[0] + passingData[1]) + "%");
+        }
+
+        public void generateReport()
+        {
+            string currentDate = DateTime.Today.Day + "." + DateTime.Today.Month + "." + DateTime.Today.Year;
+            string filename = DateTime.Today.Day + "_" + DateTime.Today.Month + "_" + DateTime.Today.Year + ".txt";
+            FileStream stream = new FileStream(filename, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(stream);
+            writer.WriteLine("Report from MHDDatabase on " + currentDate + ".");
+            writer.WriteLine(">>>Leaders in routes sector<<<");
+            Route busRouteLeader = routes.Where(route => route.type == Types.Bus).ToList()[0];
+            writer.WriteLine("Buses: " + busRouteLeader.route + " Times travelled: " + busRouteLeader.amount + ".");
+            Route tramRouteLeader = routes.Where(route => route.type == Types.Tram).ToList()[0];
+            writer.WriteLine("Trams: " + tramRouteLeader.route + " Times travelled: " + tramRouteLeader.amount + ".");
+            Route trolleyRouteLeader = routes.Where(route => route.type == Types.Trolleybus).ToList()[0];
+            writer.WriteLine("Trolleybuses: " + trolleyRouteLeader.route + " Times travelled: " + trolleyRouteLeader.amount + ".");
+            writer.WriteLine(">>>Leaders in vehicles sector<<<");
+            Vehicle busVehicleLeader = vehicles.Where(vehicle => vehicle.type == Types.Bus).ToList()[0];
+            writer.WriteLine("Buses: " + busVehicleLeader.vehicle + " Times travelled: " + busVehicleLeader.amount + ".");
+            Vehicle tramVehicleLeader = vehicles.Where(vehicle => vehicle.type == Types.Tram).ToList()[0];
+            writer.WriteLine("Trams: " + tramVehicleLeader.vehicle + " Times travelled: " + tramVehicleLeader.amount + ".");
+            Vehicle trolleyVehicleLeader = vehicles.Where(vehicle => vehicle.type == Types.Trolleybus).ToList()[0];
+            writer.WriteLine("Trolleybuses: " + trolleyVehicleLeader.vehicle + " Times travelled: " + trolleyVehicleLeader.amount + ".");
+            writer.WriteLine(">>>Data about passing through Magistrate crossroads<<<");
+            double passingPercentage = (double)((passingData[0]) * 100) / (double)(passingData[0] + passingData[1]);
+            writer.WriteLine("Percentual chance to pass through the crossroads: " + passingPercentage + "%.");
+            writer.Close();
+            stream.Close();
+            Console.WriteLine("Report successfully generated.");
         }
     }
 }
