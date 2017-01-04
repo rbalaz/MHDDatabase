@@ -27,12 +27,22 @@ namespace MHDDatabase
                 string[] segments = line.Split(' ');
                 List<int> vehicleIndices = detectVehicles(segments);
                 int actualIndex = 0;
-                while (actualIndex < segments.Length)
+                while (actualIndex < segments.Length - 1)
                 {
-                    int endIndex = vehicleIndices[vehicleIndices.IndexOf(actualIndex) + 1];
-                    Entry entry = new Entry(segments.Skip(actualIndex).Take(endIndex - actualIndex).ToArray());
-                    queue.queuedEntries.Add(entry);
-                    actualIndex = endIndex;
+                    if (vehicleIndices[vehicleIndices.IndexOf(actualIndex)] < vehicleIndices.Count - 1)
+                    {
+                        int endIndex = vehicleIndices[vehicleIndices.IndexOf(actualIndex) + 1];
+                        Entry entry = new Entry(segments.Skip(actualIndex).Take(endIndex - actualIndex).ToArray());
+                        queue.queuedEntries.Add(entry);
+                        actualIndex = endIndex;
+                    }
+                    else
+                    {
+                        int endIndex = segments.Length;
+                        Entry entry = new Entry(segments.Skip(actualIndex).Take(endIndex - actualIndex).ToArray());
+                        queue.queuedEntries.Add(entry);
+                        actualIndex = endIndex;
+                    }
                 }
             }
 

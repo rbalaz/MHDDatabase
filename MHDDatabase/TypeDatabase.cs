@@ -9,7 +9,7 @@ namespace MHDDatabase
 {
     class TypeDatabase
     {
-        class DatabaseError : Exception { }
+        public class DatabaseError : Exception { }
 
         private string filePath;
         private List<string> busTypes;
@@ -74,6 +74,55 @@ namespace MHDDatabase
 
             writer.Close();
             stream.Close();
+        }
+
+        public void deleteFromDatabase(string[] entry)
+        {
+            List<string> lines = new List<string>(File.ReadAllLines(filePath));
+            lines.RemoveAt(lines.IndexOf(entry[0] + " " + entry[1]));
+            File.WriteAllLines(filePath, lines);
+        }
+
+        public void listDatabase()
+        {
+            Console.WriteLine("Listing chosen part of database:");
+            Console.WriteLine(">>>Buses<<<");
+            if (busTypes.Count == 0)
+                Console.WriteLine("No entries available.");
+            else
+            {
+                foreach (string s in busTypes)
+                    Console.WriteLine(s);
+            }
+
+            Console.WriteLine(">>>Trolleybuses<<<");
+            if (trolleyTypes.Count == 0)
+                Console.WriteLine("No entries available.");
+            else
+            {
+                foreach (string s in trolleyTypes)
+                    Console.WriteLine(s);
+            }
+
+            Console.WriteLine(">>>Trams<<<");
+            if (tramTypes.Count == 0)
+                Console.WriteLine("No entries available.");
+            else
+            {
+                foreach (string s in tramTypes)
+                    Console.WriteLine(s);
+            }
+            if (filePath.ToLower().Contains("vehicle"))
+            {
+                Console.WriteLine(">>>Electrobuses<<<");
+                if (electroTypes.Count == 0)
+                    Console.WriteLine("No entries available.");
+                else
+                {
+                    foreach (string s in electroTypes)
+                        Console.WriteLine(s);
+                }
+            }
         }
     }
 }

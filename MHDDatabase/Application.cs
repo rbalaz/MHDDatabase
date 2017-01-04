@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace MHDDatabase
 {
@@ -13,13 +14,15 @@ namespace MHDDatabase
             bool applicationQuitTrigger = false;
             while (!(applicationQuitTrigger))
             {
-                Console.WriteLine("Welcome to MHD Database v1.0.");
+                Console.WriteLine("Welcome to MHD Database v1.1.");
                 Console.WriteLine("To proceed using the application, please choose one of the available options:");
                 Console.WriteLine("1 - Data entering mode.");
                 Console.WriteLine("2 - Listing mode.");
-                Console.WriteLine("3 - Close application.");
+                Console.WriteLine("3 - Developer mode.");
+                Console.WriteLine("4 - Close application.");
                 Console.Write("Your choice: ");
-                char choice = (char)Console.Read();
+                string entry = Console.ReadLine();
+                char choice = entry[0];
                 switch (choice)
                 {
                     case '1':
@@ -47,16 +50,23 @@ namespace MHDDatabase
             List<Route> routes;
             List<Vehicle> vehicles;
             int[] passingData;
-            queue.processQueue(out routes, out vehicles, out passingData);
-            DataSaver saver = new DataSaver();
-            saver.saveRoutes(routes);
-            saver.saveVehicles(vehicles);
-            saver.savePercentage(passingData);
-            if (queue.failedEntries.Count > 0)
+            try
             {
-                Console.WriteLine("Some of the data you entered didn't match format or there was some data missing in the reference database");
-                foreach (Entry entry in queue.failedEntries)
-                    Console.WriteLine(entry);
+                queue.processQueue(out routes, out vehicles, out passingData);
+                DataSaver saver = new DataSaver();
+                saver.saveRoutes(routes);
+                saver.saveVehicles(vehicles);
+                saver.savePercentage(passingData);
+                if (queue.failedEntries.Count > 0)
+                {
+                    Console.WriteLine("Some of the data you entered didn't match format or there was some data missing in the reference database.");
+                    foreach (Entry entry in queue.failedEntries)
+                        Console.WriteLine(entry);
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("One or more files associated with saving data was not found.");
             }
         }
 
@@ -64,43 +74,175 @@ namespace MHDDatabase
         {
             bool listingModeQuitTrigger = false;
             DataLoader loader = new DataLoader();
-            Listing listing = new Listing(loader.loadRoutes("routes2016.txt"), loader.loadVehicles("vehicles2016.txt"), 
-                loader.loadPercentage("data2016.txt"));
-            while (!(listingModeQuitTrigger))
+            Listing listing;
+            try
             {
-                Console.WriteLine("You have chosen the listing mode. Please choose one of the listing modes.");
-                Console.WriteLine("1 - Route listing mode.");
-                Console.WriteLine("2 - Vehicle listing mode.");
-                Console.WriteLine("3 - Passing data listing.");
-                Console.WriteLine("4 - Full listing mode.");
-                Console.WriteLine("5 - Quit listing mode.");
+                listing = new Listing(loader.loadRoutes("routes2016.txt"), loader.loadVehicles("vehicles2016.txt"),
+                    loader.loadPercentage("data2016.txt"));
+
+                while (!(listingModeQuitTrigger))
+                {
+                    Console.WriteLine("You have chosen the listing mode. Please choose one of the listing modes.");
+                    Console.WriteLine("1 - Route listing mode.");
+                    Console.WriteLine("2 - Vehicle listing mode.");
+                    Console.WriteLine("3 - Passing data listing.");
+                    Console.WriteLine("4 - Full listing mode.");
+                    Console.WriteLine("5 - Quit listing mode.");
+                    Console.Write("Your choice: ");
+                    string entry = Console.ReadLine();
+                    char choice = entry[0];
+                    switch (choice)
+                    {
+                        case '1':
+                            listing.listRoutes();
+                            break;
+                        case '2':
+                            listing.listVehicles();
+                            break;
+                        case '3':
+                            listing.listData();
+                            break;
+                        case '4':
+                            listing.listRoutes();
+                            listing.listVehicles();
+                            listing.listData();
+                            break;
+                        default:
+                            listingModeQuitTrigger = true;
+                            break;
+                    }
+                }
+                Console.WriteLine("Would you like to have a report generated?");
+                string answer = Console.ReadLine();
+                if (answer.ToLower().Equals("yes"))
+                    listing.generateReport();
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("One or more files associated with listing could not be found.");
+                return;
+            }
+        }
+
+        private void runDeveloperMode()
+        {
+            string password = "";
+            Console.WriteLine("Please enter password:");
+            int counter = 3;
+            while (password.Equals("magrum erupto") == false)
+            {
+                password = Console.ReadLine();
+                if (password.ToLower().Equals("leave"))
+                    return;
+                Console.WriteLine("Invalid password entered. You have " + --counter + " attempts remaining.");
+                if (counter == 0)
+                    return;
+            }
+            while (true)
+            {
+                Console.WriteLine("Welcome to MHDDatabase v1.1 developer tools.");
+                Console.WriteLine("Please choose one of the available options.");
+                Console.WriteLine("1 - Check internal database.");
+                Console.WriteLine("2 - Delete entries from internal database(WARNING: Changes are irreversible!)");
+                Console.WriteLine("3 - Close developer tools.");
                 Console.Write("Your choice: ");
-                char choice = (char)Console.Read();
+                string entry = Console.ReadLine();
+                char choice = entry[0];
                 switch (choice)
                 {
                     case '1':
-                        listing.listRoutes();
+                        checkInternalDatabase();
                         break;
                     case '2':
-                        listing.listVehicles();
-                        break;
-                    case '3':
-                        listing.listData();
-                        break;
-                    case '4':
-                        listing.listRoutes();
-                        listing.listVehicles();
-                        listing.listData();
+                        deleteFromInternalDatabase();
                         break;
                     default:
-                        listingModeQuitTrigger = true;
-                        break;              
+                        return;
                 }
             }
-            Console.WriteLine("Would you like to have a report generated?");
-            string answer = Console.ReadLine();
-            if (answer.ToLower().Equals("yes"))
-                listing.generateReport();
+        }
+
+        private void checkInternalDatabase()
+        {
+            Console.WriteLine("1 - Lists the routes part of internal database.");
+            Console.WriteLine("2 - Lists the vehicles part of internal database.");
+            Console.WriteLine("3 - Checks if given route or vehicle is defined in database.");
+            Console.WriteLine("4 - Close this mode.");
+            Console.Write("Your choice: ");
+            string entry = Console.ReadLine();
+            char choice = entry[0];
+            switch (choice)
+            {
+                case '1':
+                    TypeDatabase routesDatabase = new TypeDatabase("routesDatabase.txt");
+                    routesDatabase.loadDatabase();
+                    routesDatabase.listDatabase();
+                    break;
+                case '2':
+                    TypeDatabase vehiclesDatabase = new TypeDatabase("vehiclesDatabase.txt");
+                    vehiclesDatabase.loadDatabase();
+                    vehiclesDatabase.listDatabase();
+                    break;
+                case '3':
+                    Console.WriteLine("Enter route or vehicle number: ");
+                    string evidence = Console.ReadLine();
+                    identifyAndCheckEntry(evidence);
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        private void identifyAndCheckEntry(string entry)
+        {
+            string type = identifyEntry(entry);
+            TypeDatabase database;
+            if (type.Equals("route"))
+                database = new TypeDatabase("routeDatabase.txt");
+            else
+                database = new TypeDatabase("vehicleDatabase.txt");
+            database.loadDatabase();
+            try
+            {
+                Types entryType = database.getType(entry);
+                Console.WriteLine("Given entry is listed in database as: " + entryType + ".");
+            }
+            catch (TypeDatabase.DatabaseError)
+            {
+                Console.WriteLine("Given entry is not listed in the database.");
+            }
+        }
+
+        private string identifyEntry(string entry)
+        {
+            string entryPart;
+            if (entry.Contains("+"))
+                entryPart = entry.Split('+')[0];
+            else
+                entryPart = entry;
+            int parseInt;
+            if (int.TryParse(entry, out parseInt))
+                if (parseInt > 100)
+                    return "vehicle";
+
+            return "route";
+        }
+
+        private void deleteFromInternalDatabase()
+        {
+            Console.Write("Write the route or vehicle you want to delete from the database: ");
+            string entry = Console.ReadLine();
+            string type = identifyEntry(entry);
+            TypeDatabase database;
+            if (type.Equals("route"))
+                database = new TypeDatabase("routeDatabase.txt");
+            else
+                database = new TypeDatabase("vehicleDatabase.txt");
+            database.loadDatabase();
+            string[] args = new string[2];
+            args[0] = entry;
+            args[1] = database.getType(entry).ToString();
+            database.deleteFromDatabase(args);
         }
     }
 }
