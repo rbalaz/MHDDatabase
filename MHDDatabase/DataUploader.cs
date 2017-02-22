@@ -20,7 +20,7 @@ namespace MHDDatabase
             Queue queue = new Queue();
             while(true)
             {
-                Console.WriteLine("Please enter one or multiple entries: \n");
+                Console.WriteLine("Please enter one or multiple entries:");
                 line = Console.ReadLine();
                 if (line.Equals("Terminate") || line.Equals("terminate"))
                     break;

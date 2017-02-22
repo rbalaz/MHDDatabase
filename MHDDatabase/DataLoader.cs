@@ -12,7 +12,10 @@ namespace MHDDatabase
         public List<Route> loadRoutes(string filePath)
         {
             if (File.Exists(filePath) == false)
-                throw new FileNotFoundException();
+            {
+                File.Create(filePath);
+                return new List<Route>();
+            }
             else
             {
                 FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -39,7 +42,10 @@ namespace MHDDatabase
         public List<Vehicle> loadVehicles(string filePath)
         {
             if (File.Exists(filePath) == false)
-                throw new FileNotFoundException();
+            {
+                File.Create(filePath);
+                return new List<Vehicle>();
+            }
             else
             {
                 FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -66,22 +72,34 @@ namespace MHDDatabase
         public int[] loadPercentage(string filePath)
         {
             if (File.Exists(filePath) == false)
-                throw new FileNotFoundException();
+            {
+                File.Create(filePath);
+                return new int[] { 0, 0 };
+            }
             else
             {
                 FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
                 StreamReader reader = new StreamReader(stream);
 
-                string passedLine = reader.ReadLine();
-                string[] passedLineParts = passedLine.Split(' ');
-                int passed = int.Parse(passedLineParts[passedLineParts.Length - 1]);
-                string notPassedLine = reader.ReadLine();
-                string[] notPassedLineParts = notPassedLine.Split(' ');
-                int notPassed = int.Parse(notPassedLineParts[notPassedLineParts.Length - 1]);
-                reader.Close();
-                stream.Close();
+                try
+                {
+                    string passedLine = reader.ReadLine();
+                    string[] passedLineParts = passedLine.Split(' ');
+                    int passed = int.Parse(passedLineParts[passedLineParts.Length - 1]);
+                    string notPassedLine = reader.ReadLine();
+                    string[] notPassedLineParts = notPassedLine.Split(' ');
+                    int notPassed = int.Parse(notPassedLineParts[notPassedLineParts.Length - 1]);
+                    reader.Close();
+                    stream.Close();
 
-                return new int[] { passed, notPassed};
+                    return new int[] { passed, notPassed };
+                }
+                catch (NullReferenceException)
+                {
+                    reader.Close();
+                    stream.Close();
+                    return new int[] { 0, 0 };
+                }
             }
         }
     }

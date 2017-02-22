@@ -9,12 +9,13 @@ namespace MHDDatabase
 {
     class Application
     {
+        string version = "v1.2.";
         public void run()
         {
             bool applicationQuitTrigger = false;
             while (!(applicationQuitTrigger))
             {
-                Console.WriteLine("Welcome to MHD Database v1.1.");
+                Console.WriteLine("Welcome to MHD Database " + version);
                 Console.WriteLine("To proceed using the application, please choose one of the available options:");
                 Console.WriteLine("1 - Data entering mode.");
                 Console.WriteLine("2 - Listing mode.");
@@ -31,6 +32,9 @@ namespace MHDDatabase
                     case '2':
                         runListingMode();
                         break;
+                    case '3':
+                        runDeveloperMode();
+                        break;
                     default:
                         applicationQuitTrigger = true;
                         break;     
@@ -40,7 +44,33 @@ namespace MHDDatabase
 
         private void runEnteringMode()
         {
-            Console.WriteLine("You have chosen the entering mode. Please type data you want to add to the database.");
+            while (true)
+            {
+                Console.WriteLine("You have chosen the entering mode. Please choose one of the available options:");
+                Console.WriteLine("1 - Manual data entering mode.");
+                Console.WriteLine("2 - Loading data from file.");
+                Console.WriteLine("3 - Quit entering mode.");
+                Console.Write("Your choice: ");
+                string entry = Console.ReadLine();
+                char choice = entry[0];
+                switch (choice)
+                {
+                    case '1':
+                        runManualEntering();
+                        break;
+                    case '2':
+                        runFileLoading();
+                        break;
+                    case '3':
+                        return;
+                }
+            }
+
+        }
+
+        private void runManualEntering()
+        {
+            Console.WriteLine("You have chosen the manual entering mode. Please type data you want to add to the database.");
             Console.WriteLine("Data needs to be given in the following format: ");
             Console.WriteLine("Vehicle [Type] Route [Type] [Flag]");
             Console.WriteLine("Arguments in square brackets are optional.");
@@ -52,11 +82,12 @@ namespace MHDDatabase
             int[] passingData;
             try
             {
-                queue.processQueue(out routes, out vehicles, out passingData);
-                DataSaver saver = new DataSaver();
+                queue.processQueue(DateTime.Now.Year, out routes, out vehicles, out passingData);
+                DataSaver saver = new DataSaver(DateTime.Now.Year);
                 saver.saveRoutes(routes);
                 saver.saveVehicles(vehicles);
                 saver.savePercentage(passingData);
+                saver.saveProcessedEntries(queue.processedEntries);
                 if (queue.failedEntries.Count > 0)
                 {
                     Console.WriteLine("Some of the data you entered didn't match format or there was some data missing in the reference database.");
@@ -70,15 +101,22 @@ namespace MHDDatabase
             }
         }
 
+        private void runFileLoading()
+        {
+            throw new NotImplementedException();
+        }
+
         private void runListingMode()
         {
             bool listingModeQuitTrigger = false;
             DataLoader loader = new DataLoader();
             Listing listing;
+            Console.WriteLine("You have chosen the listing mode. Please write the year from which you want data to be listed:");
+            string year = Console.ReadLine();
             try
             {
-                listing = new Listing(loader.loadRoutes("routes2016.txt"), loader.loadVehicles("vehicles2016.txt"),
-                    loader.loadPercentage("data2016.txt"));
+                listing = new Listing(loader.loadRoutes("routes" + year + ".txt"), loader.loadVehicles("vehicles" + year +".txt"),
+                    loader.loadPercentage("data" + year + ".txt"));
 
                 while (!(listingModeQuitTrigger))
                 {
@@ -127,20 +165,23 @@ namespace MHDDatabase
         private void runDeveloperMode()
         {
             string password = "";
-            Console.WriteLine("Please enter password:");
             int counter = 3;
-            while (password.Equals("magrum erupto") == false)
+            do
             {
+                Console.WriteLine("Please enter password:");
                 password = Console.ReadLine();
                 if (password.ToLower().Equals("leave"))
                     return;
+                if (password.Equals("magrum erupto"))
+                    break;
                 Console.WriteLine("Invalid password entered. You have " + --counter + " attempts remaining.");
                 if (counter == 0)
                     return;
-            }
+            } while (password.Equals("magrum erupto") == false);
+
             while (true)
             {
-                Console.WriteLine("Welcome to MHDDatabase v1.1 developer tools.");
+                Console.WriteLine("Welcome to MHDDatabase " + version + " developer tools.");
                 Console.WriteLine("Please choose one of the available options.");
                 Console.WriteLine("1 - Check internal database.");
                 Console.WriteLine("2 - Delete entries from internal database(WARNING: Changes are irreversible!)");
@@ -171,25 +212,33 @@ namespace MHDDatabase
             Console.Write("Your choice: ");
             string entry = Console.ReadLine();
             char choice = entry[0];
-            switch (choice)
+            try
             {
-                case '1':
-                    TypeDatabase routesDatabase = new TypeDatabase("routesDatabase.txt");
-                    routesDatabase.loadDatabase();
-                    routesDatabase.listDatabase();
-                    break;
-                case '2':
-                    TypeDatabase vehiclesDatabase = new TypeDatabase("vehiclesDatabase.txt");
-                    vehiclesDatabase.loadDatabase();
-                    vehiclesDatabase.listDatabase();
-                    break;
-                case '3':
-                    Console.WriteLine("Enter route or vehicle number: ");
-                    string evidence = Console.ReadLine();
-                    identifyAndCheckEntry(evidence);
-                    break;
-                default:
-                    return;
+                switch (choice)
+                {
+                    case '1':
+                        TypeDatabase routesDatabase = new TypeDatabase("routesDatabase.txt");
+                        routesDatabase.loadDatabase();
+                        routesDatabase.listDatabase();
+                        break;
+                    case '2':
+                        TypeDatabase vehiclesDatabase = new TypeDatabase("vehiclesDatabase.txt");
+                        vehiclesDatabase.loadDatabase();
+                        vehiclesDatabase.listDatabase();
+                        break;
+                    case '3':
+                        Console.WriteLine("Enter route or vehicle number: ");
+                        string evidence = Console.ReadLine();
+                        identifyAndCheckEntry(evidence);
+                        break;
+                    default:
+                        return;
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("One or more files associated with listing could not be found.");
+                return;
             }
         }
 
@@ -198,10 +247,18 @@ namespace MHDDatabase
             string type = identifyEntry(entry);
             TypeDatabase database;
             if (type.Equals("route"))
-                database = new TypeDatabase("routeDatabase.txt");
+                database = new TypeDatabase("routesDatabase.txt");
             else
-                database = new TypeDatabase("vehicleDatabase.txt");
-            database.loadDatabase();
+                database = new TypeDatabase("vehiclesDatabase.txt");
+            try
+            {
+                database.loadDatabase();
+            }
+            catch(FileNotFoundException)
+            {
+                Console.WriteLine("One or more files associated with listing could not be found.");
+                return;
+            }
             try
             {
                 Types entryType = database.getType(entry);
@@ -235,10 +292,18 @@ namespace MHDDatabase
             string type = identifyEntry(entry);
             TypeDatabase database;
             if (type.Equals("route"))
-                database = new TypeDatabase("routeDatabase.txt");
+                database = new TypeDatabase("routesDatabase.txt");
             else
-                database = new TypeDatabase("vehicleDatabase.txt");
-            database.loadDatabase();
+                database = new TypeDatabase("vehiclesDatabase.txt");
+            try
+            {
+                database.loadDatabase();
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("One or more files associated with listing could not be found.");
+                return;
+            }
             string[] args = new string[2];
             args[0] = entry;
             args[1] = database.getType(entry).ToString();

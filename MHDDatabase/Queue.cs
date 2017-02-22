@@ -11,6 +11,7 @@ namespace MHDDatabase
         class EntryProccessingFailed : Exception{ }
         public List<Entry> queuedEntries { get; private set; }
         public List<Entry> failedEntries { get; private set; }
+        public List<string> processedEntries { get; private set; }
 
         public Queue()
         {
@@ -18,7 +19,7 @@ namespace MHDDatabase
             failedEntries = new List<Entry>();
         }
 
-        public void processQueue(out List<Route> updatedRoutes, out List<Vehicle> updatedVehicles, out int[] updatedPassingData)
+        public void processQueue(int year, out List<Route> updatedRoutes, out List<Vehicle> updatedVehicles, out int[] updatedPassingData)
         {
             // Possible types of entries
             // 3320 19 - vehicle + route - type needs to be already in the DB
@@ -26,9 +27,9 @@ namespace MHDDatabase
             // 4716 36 Bus - vehicle + route + type
             // 538 6 P Tram - tram + route + flag + type
             DataLoader loader = new DataLoader();
-            List<Route> routes = loader.loadRoutes("routes.txt");
-            List<Vehicle> vehicles = loader.loadVehicles("vehicles.txt");
-            int[] passingData = loader.loadPercentage("passed.txt");
+            List<Route> routes = loader.loadRoutes("routes" + year + ".txt");
+            List<Vehicle> vehicles = loader.loadVehicles("vehicles" + year + ".txt");
+            int[] passingData = loader.loadPercentage("data" + year + ".txt");
             foreach (Entry entry in queuedEntries)
             {
                 List<Route> routesBackup = cloneRouteList(routes);
@@ -53,6 +54,7 @@ namespace MHDDatabase
                     passingData = passingDataBackup;
                     failedEntries.Add(entry);
                 }
+                saveProcessedEntry(vehicleParts, routeParts, rest);
             }
 
             updatedRoutes = routes;
@@ -96,7 +98,7 @@ namespace MHDDatabase
             }
             else
             {
-                TypeDatabase vehicleDatabase = new TypeDatabase("vehicle_database.txt");
+                TypeDatabase vehicleDatabase = new TypeDatabase("vehicleDatabase.txt");
                 vehicleDatabase.updateDatabase(new string[] { vehicleParts[0], vehicleParts[1] });
                 vehicleDatabase.loadDatabase();
                 Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]));
@@ -115,7 +117,7 @@ namespace MHDDatabase
             }
             else
             {
-                TypeDatabase routeDatabase = new TypeDatabase("route_database.txt");
+                TypeDatabase routeDatabase = new TypeDatabase("routeDatabase.txt");
                 routeDatabase.updateDatabase(new string[] { routeParts[0], routeParts[1] });
                 Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[1]));
                 routes.Add(newRoute);
@@ -149,6 +151,14 @@ namespace MHDDatabase
                 clone.Add(new Route(route.route, route.type, route.amount));
 
             return clone;
+        }
+
+        private void saveProcessedEntry(string[] vehicleParts, string[] routeParts, string[] rest)
+        {
+            if (rest[0].Equals("") == false)
+                processedEntries.Add(vehicleParts[0] + " " + routeParts[0] + rest);
+            else
+                processedEntries.Add(vehicleParts[0] + " " + routeParts[0]);
         }
     }
 }
