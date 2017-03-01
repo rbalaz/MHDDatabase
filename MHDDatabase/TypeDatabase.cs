@@ -38,6 +38,8 @@ namespace MHDDatabase
                 electroTypes = new List<string>();
                 while ((line = reader.ReadLine()) != null)
                 {
+                    if (line.Equals(""))
+                        continue;
                     string[] segments = line.Split(' ');
                     if (segments[1] == Types.Bus.ToString())
                         busTypes.Add(segments[0]);
@@ -48,6 +50,8 @@ namespace MHDDatabase
                     if (segments[1] == Types.Trolleybus.ToString())
                         trolleyTypes.Add(segments[0]);
                 }
+                reader.Close();
+                stream.Close();
             }
         }
 
@@ -67,10 +71,14 @@ namespace MHDDatabase
 
         public void updateDatabase(string[] entry)
         {
+            // Database currently updates regardless of the entry being already in database FIX IT!
             FileStream stream = new FileStream(filePath, FileMode.Append, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
 
-            writer.WriteLine(entry);
+            string constructor = "";
+            for (int i = 0; i < entry.Length; i++)
+                constructor = string.Concat(constructor, entry[i] + " ");
+            writer.WriteLine(constructor.Trim());
 
             writer.Close();
             stream.Close();

@@ -17,6 +17,7 @@ namespace MHDDatabase
         {
             queuedEntries = new List<Entry>();
             failedEntries = new List<Entry>();
+            processedEntries = new List<string>();
         }
 
         public void processQueue(int year, out List<Route> updatedRoutes, out List<Vehicle> updatedVehicles, out int[] updatedPassingData)
@@ -98,7 +99,7 @@ namespace MHDDatabase
             }
             else
             {
-                TypeDatabase vehicleDatabase = new TypeDatabase("vehicleDatabase.txt");
+                TypeDatabase vehicleDatabase = new TypeDatabase("vehiclesDatabase.txt");
                 vehicleDatabase.updateDatabase(new string[] { vehicleParts[0], vehicleParts[1] });
                 vehicleDatabase.loadDatabase();
                 Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]));
@@ -117,7 +118,7 @@ namespace MHDDatabase
             }
             else
             {
-                TypeDatabase routeDatabase = new TypeDatabase("routeDatabase.txt");
+                TypeDatabase routeDatabase = new TypeDatabase("routesDatabase.txt");
                 routeDatabase.updateDatabase(new string[] { routeParts[0], routeParts[1] });
                 Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[1]));
                 routes.Add(newRoute);

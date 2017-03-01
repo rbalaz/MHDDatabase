@@ -83,6 +83,7 @@ namespace MHDDatabase
 
                 try
                 {
+                    reader.ReadLine(); // skipping first line
                     string passedLine = reader.ReadLine();
                     string[] passedLineParts = passedLine.Split(' ');
                     int passed = int.Parse(passedLineParts[passedLineParts.Length - 1]);

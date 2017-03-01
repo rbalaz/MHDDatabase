@@ -9,7 +9,7 @@ namespace MHDDatabase
 {
     class Application
     {
-        string version = "v1.2.";
+        string version = "v1.3.1";
         public void run()
         {
             bool applicationQuitTrigger = false;
