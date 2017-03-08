@@ -26,6 +26,11 @@ namespace MHDDatabase
                     break;
                 string[] segments = line.Split(' ');
                 List<int> vehicleIndices = detectVehicles(segments);
+                if (vehicleIndices.Count == 0)
+                {
+                    Console.WriteLine("Most recent entry was not queued due to bad format.");
+                    continue;
+                }
                 int actualIndex = 0;
                 while (actualIndex < segments.Length - 1)
                 {

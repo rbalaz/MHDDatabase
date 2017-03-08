@@ -54,6 +54,7 @@ namespace MHDDatabase
                     vehicles = vehiclesBackup;
                     passingData = passingDataBackup;
                     failedEntries.Add(entry);
+                    continue;
                 }
                 saveProcessedEntry(vehicleParts, routeParts, rest);
             }
@@ -67,7 +68,7 @@ namespace MHDDatabase
         {
             string candidate = entry.arguments[1].ToLower();
             string[] types = new string[] { "bus", "tram", "trolleybus", "electrobus" };
-            if (types.Contains(candidate))
+            if (types.Contains(candidate.ToLower()))
                 return 2;
             else
                 return 1;
@@ -79,10 +80,10 @@ namespace MHDDatabase
             {
                 string candidate = entry.arguments[vehicleTypeIndex + 1];
                 string[] types = new string[] { "bus", "tram", "trolleybus", "electrobus" };
-                if (types.Contains(candidate))
-                    return vehicleTypeIndex + 1;
+                if (types.Contains(candidate.ToLower()))
+                    return vehicleTypeIndex + 2;
                 else
-                    return vehicleTypeIndex;
+                    return vehicleTypeIndex + 1;
             }
             else
                 return vehicleTypeIndex;
@@ -90,6 +91,8 @@ namespace MHDDatabase
 
         private void processVehiclePart(string[] vehicleParts, List<Vehicle> vehicles)
         {
+            if (vehicleParts.Length == 0)
+                throw new EntryProccessingFailed();
             if (vehicleParts.Length == 1)
             {
                 if (vehicles.Exists(v => v.vehicle.Equals(vehicleParts[0])))
@@ -102,13 +105,15 @@ namespace MHDDatabase
                 TypeDatabase vehicleDatabase = new TypeDatabase("vehiclesDatabase.txt");
                 vehicleDatabase.updateDatabase(new string[] { vehicleParts[0], vehicleParts[1] });
                 vehicleDatabase.loadDatabase();
-                Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]));
+                Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]), 1);
                 vehicles.Add(vehicle);
             }
         }
 
         private void processRoutePart(string[] routeParts, List<Route> routes)
         {
+            if (routeParts.Length == 0)
+                throw new EntryProccessingFailed();
             if (routeParts.Length == 1)
             {
                 if (routes.Exists(r => r.route.Equals(routeParts[0])))
@@ -120,7 +125,8 @@ namespace MHDDatabase
             {
                 TypeDatabase routeDatabase = new TypeDatabase("routesDatabase.txt");
                 routeDatabase.updateDatabase(new string[] { routeParts[0], routeParts[1] });
-                Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[1]));
+                routeDatabase.loadDatabase();
+                Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[0]), 1);
                 routes.Add(newRoute);
             }
         }
@@ -156,7 +162,7 @@ namespace MHDDatabase
 
         private void saveProcessedEntry(string[] vehicleParts, string[] routeParts, string[] rest)
         {
-            if (rest[0].Equals("") == false)
+            if (rest.Length != 0)
                 processedEntries.Add(vehicleParts[0] + " " + routeParts[0] + rest);
             else
                 processedEntries.Add(vehicleParts[0] + " " + routeParts[0]);

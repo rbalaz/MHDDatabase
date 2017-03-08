@@ -10,6 +10,7 @@ namespace MHDDatabase
     class TypeDatabase
     {
         public class DatabaseError : Exception { }
+        public class CorruptedDatabase : Exception { }
 
         private string filePath;
         private List<string> busTypes;
@@ -41,13 +42,13 @@ namespace MHDDatabase
                     if (line.Equals(""))
                         continue;
                     string[] segments = line.Split(' ');
-                    if (segments[1] == Types.Bus.ToString())
+                    if (segments[1].ToUpper() == Types.Bus.ToString().ToUpper())
                         busTypes.Add(segments[0]);
-                    if (segments[1] == Types.Electrobus.ToString())
+                    if (segments[1].ToUpper() == Types.Electrobus.ToString().ToUpper())
                         electroTypes.Add(segments[0]);
-                    if (segments[1] == Types.Tram.ToString())
+                    if (segments[1].ToUpper() == Types.Tram.ToString().ToUpper())
                         tramTypes.Add(segments[0]);
-                    if (segments[1] == Types.Trolleybus.ToString())
+                    if (segments[1].ToUpper() == Types.Trolleybus.ToString().ToUpper())
                         trolleyTypes.Add(segments[0]);
                 }
                 reader.Close();
@@ -71,17 +72,24 @@ namespace MHDDatabase
 
         public void updateDatabase(string[] entry)
         {
-            // Database currently updates regardless of the entry being already in database FIX IT!
-            FileStream stream = new FileStream(filePath, FileMode.Append, FileAccess.Write);
-            StreamWriter writer = new StreamWriter(stream);
-
-            string constructor = "";
-            for (int i = 0; i < entry.Length; i++)
-                constructor = string.Concat(constructor, entry[i] + " ");
-            writer.WriteLine(constructor.Trim());
-
-            writer.Close();
-            stream.Close();
+            loadDatabase();
+            try
+            {
+                Types type = getType(entry[0]);
+                if (type.ToString().ToUpper() != entry[1].ToUpper())
+                    throw new CorruptedDatabase();
+            }
+            catch(DatabaseError)
+            {
+                FileStream stream = new FileStream(filePath, FileMode.Append, FileAccess.Write);
+                StreamWriter writer = new StreamWriter(stream);
+                string constructor = "";
+                for (int i = 0; i < entry.Length; i++)
+                    constructor = string.Concat(constructor, entry[i] + " ");
+                writer.WriteLine(constructor.Trim());
+                writer.Close();
+                stream.Close();
+            }
         }
 
         public void deleteFromDatabase(string[] entry)
