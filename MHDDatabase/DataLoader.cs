@@ -27,6 +27,8 @@ namespace MHDDatabase
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
+                    if (line.Trim() == "")
+                        continue;
                     string[] segments = line.Split(' ');
 
                     Route route = new Route(segments[0], database.getType(segments[0]), int.Parse(segments[1]));
@@ -57,6 +59,8 @@ namespace MHDDatabase
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
+                    if (line.Trim() == "")
+                        continue;
                     string[] segments = line.Split(' ');
 
                     Vehicle vehicle = new Vehicle(segments[0], database.getType(segments[0]), int.Parse(segments[1]));

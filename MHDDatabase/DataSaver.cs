@@ -18,7 +18,7 @@ namespace MHDDatabase
 
         public void saveVehicles(List<Vehicle> vehicles)
         {
-            vehicles.OrderByDescending(vehicle => vehicle.amount);
+            vehicles = vehicles.OrderByDescending(vehicle => vehicle.amount).ToList();
             FileStream stream = new FileStream("vehicles" + year + ".txt", FileMode.Create, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
             foreach (Vehicle vehicle in vehicles)
@@ -31,7 +31,7 @@ namespace MHDDatabase
 
         public void saveRoutes(List<Route> routes)
         {
-            routes.OrderByDescending(route => route.amount);
+            routes = routes.OrderByDescending(route => route.amount).ToList();
             FileStream stream = new FileStream("routes" + year + ".txt", FileMode.Create, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
             foreach (Route route in routes)

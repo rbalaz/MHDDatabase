@@ -66,6 +66,8 @@ namespace MHDDatabase
 
         private int detectVehicleTypeIndex(Entry entry)
         {
+            if (entry.arguments.Length == 0 || entry.arguments.Length == 1)
+                return 0;
             string candidate = entry.arguments[1].ToLower();
             string[] types = new string[] { "bus", "tram", "trolleybus", "electrobus" };
             if (types.Contains(candidate.ToLower()))
@@ -86,7 +88,12 @@ namespace MHDDatabase
                     return vehicleTypeIndex + 1;
             }
             else
-                return vehicleTypeIndex;
+            {
+                if (entry.arguments.Length == vehicleTypeIndex)
+                    return vehicleTypeIndex;
+                else
+                    return vehicleTypeIndex + 1;
+            }               
         }
 
         private void processVehiclePart(string[] vehicleParts, List<Vehicle> vehicles)

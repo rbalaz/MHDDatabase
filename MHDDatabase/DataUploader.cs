@@ -26,7 +26,7 @@ namespace MHDDatabase
                     break;
                 string[] segments = line.Split(' ');
                 List<int> vehicleIndices = detectVehicles(segments);
-                if (vehicleIndices.Count == 0)
+                if (vehicleIndices.Count == 0 || vehicleIndices[vehicleIndices.Count - 1] == segments.Length - 1) 
                 {
                     Console.WriteLine("Most recent entry was not queued due to bad format.");
                     continue;
@@ -34,7 +34,7 @@ namespace MHDDatabase
                 int actualIndex = 0;
                 while (actualIndex < segments.Length - 1)
                 {
-                    if (vehicleIndices[vehicleIndices.IndexOf(actualIndex)] < vehicleIndices.Count - 1)
+                    if (vehicleIndices.IndexOf(actualIndex) < vehicleIndices.Count - 1)
                     {
                         int endIndex = vehicleIndices[vehicleIndices.IndexOf(actualIndex) + 1];
                         Entry entry = new Entry(segments.Skip(actualIndex).Take(endIndex - actualIndex).ToArray());

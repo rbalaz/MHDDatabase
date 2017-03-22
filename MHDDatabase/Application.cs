@@ -9,7 +9,7 @@ namespace MHDDatabase
 {
     class Application
     {
-        string version = "v1.3.2";
+        string version = "v1.3.3";
         public void run()
         {
             bool applicationQuitTrigger = false;
@@ -88,6 +88,7 @@ namespace MHDDatabase
                 saver.saveVehicles(vehicles);
                 saver.savePercentage(passingData);
                 saver.saveProcessedEntries(queue.processedEntries);
+                Console.WriteLine(queue.processedEntries.Count + " entries successfully processed.");
                 if (queue.failedEntries.Count > 0)
                 {
                     Console.WriteLine("Some of the data you entered didn't match format or there was some data missing in the reference database.");
@@ -185,7 +186,8 @@ namespace MHDDatabase
                 Console.WriteLine("Please choose one of the available options.");
                 Console.WriteLine("1 - Check internal database.");
                 Console.WriteLine("2 - Delete entries from internal database(WARNING: Changes are irreversible!)");
-                Console.WriteLine("3 - Close developer tools.");
+                Console.WriteLine("3 - Wipe all database data.");
+                Console.WriteLine("4 - Close developer tools.");
                 Console.Write("Your choice: ");
                 string entry = Console.ReadLine();
                 char choice = entry[0];
@@ -196,6 +198,9 @@ namespace MHDDatabase
                         break;
                     case '2':
                         deleteFromInternalDatabase();
+                        break;
+                    case '3':
+                        wipeInternalDatabase();
                         break;
                     default:
                         return;
@@ -308,6 +313,30 @@ namespace MHDDatabase
             args[0] = entry;
             args[1] = database.getType(entry).ToString();
             database.deleteFromDatabase(args);
+        }
+
+        private void wipeInternalDatabase()
+        {
+            Console.WriteLine("You have chosen to delete all current data from database and listing files.");
+            Console.WriteLine("Do you want to proceed? yes/no");
+            string line = Console.ReadLine();
+            if (line.ToLower() == "yes")
+            {
+                wipeFile("routesDatabase.txt");
+                wipeFile("vehiclesDatabase.txt");
+                wipeFile("raw" + DateTime.Today.Year + ".txt");
+                wipeFile("vehicles" + DateTime.Today.Year + ".txt");
+                wipeFile("routes" + DateTime.Today.Year + ".txt");
+                wipeFile("data" + DateTime.Today.Year + ".txt");
+                Console.WriteLine("All database and listing files are now clean.");
+            }
+        }
+        private void wipeFile(string fileName)
+        {
+            FileStream stream = new FileStream(fileName, FileMode.Truncate, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Close();
+            stream.Close();
         }
     }
 }

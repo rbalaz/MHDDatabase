@@ -95,7 +95,7 @@ namespace MHDDatabase
         public void deleteFromDatabase(string[] entry)
         {
             List<string> lines = new List<string>(File.ReadAllLines(filePath));
-            lines.RemoveAt(lines.IndexOf(entry[0] + " " + entry[1]));
+            lines.RemoveAt(lines.IndexOf(entry[0] + " " + entry[1].ToLower()));
             File.WriteAllLines(filePath, lines);
         }
 
