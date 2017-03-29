@@ -47,6 +47,7 @@
     <Compile Include="DataLoader.cs" />
     <Compile Include="DataSaver.cs" />
     <Compile Include="DataUploader.cs" />
+    <Compile Include="DeveloperMode.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="Listing.cs" />
     <Compile Include="Program.cs" />

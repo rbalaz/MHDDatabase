@@ -65,6 +65,16 @@ namespace MHDDatabase
                     if (number > 100)
                         vehicleIndices.Add(i);
                 }
+                else
+                {
+                    string[] splits = segments[i].Split('+');
+                    int secondNumber;
+                    if (int.TryParse(splits[0], out number) && int.TryParse(splits[1], out secondNumber))
+                    {
+                        if (number > 100 && secondNumber > 100)
+                            vehicleIndices.Add(i);
+                    }
+                }
             }
 
             return vehicleIndices;

@@ -9,10 +9,12 @@ namespace MHDDatabase
 {
     class Application
     {
-        string version = "v1.3.3";
+        string version = "v1.3.4";
         public void run()
         {
             bool applicationQuitTrigger = false;
+            if (checkIfVitalFilesExist() == false)
+                applicationQuitTrigger = true;
             while (!(applicationQuitTrigger))
             {
                 Console.WriteLine("Welcome to MHD Database " + version);
@@ -33,7 +35,7 @@ namespace MHDDatabase
                         runListingMode();
                         break;
                     case '3':
-                        runDeveloperMode();
+                        (new DeveloperMode(version)).runDeveloperMode();
                         break;
                     default:
                         applicationQuitTrigger = true;
@@ -163,180 +165,45 @@ namespace MHDDatabase
             }
         }
 
-        private void runDeveloperMode()
-        {
-            string password = "";
-            int counter = 3;
-            do
-            {
-                Console.WriteLine("Please enter password:");
-                password = Console.ReadLine();
-                if (password.ToLower().Equals("leave"))
-                    return;
-                if (password.Equals("magrum erupto"))
-                    break;
-                Console.WriteLine("Invalid password entered. You have " + --counter + " attempts remaining.");
-                if (counter == 0)
-                    return;
-            } while (password.Equals("magrum erupto") == false);
 
-            while (true)
+
+        private bool checkIfVitalFilesExist()
+        {
+            string[] files = new string[6];
+            files[0] = "routesDatabase.txt";
+            files[1] = "vehiclesDatabase.txt";
+            files[2] = "data" + DateTime.Today.Year + ".txt";
+            files[3] = "raw" + DateTime.Today.Year + ".txt";
+            files[4] = "routes" + DateTime.Today.Year + ".txt";
+            files[5] = "vehicles" + DateTime.Today.Year + ".txt";
+            bool isFileMissing = false;
+            List<int> missingIndices = new List<int>();
+            for(int i = 0; i < files.Length; i++)
             {
-                Console.WriteLine("Welcome to MHDDatabase " + version + " developer tools.");
-                Console.WriteLine("Please choose one of the available options.");
-                Console.WriteLine("1 - Check internal database.");
-                Console.WriteLine("2 - Delete entries from internal database(WARNING: Changes are irreversible!)");
-                Console.WriteLine("3 - Wipe all database data.");
-                Console.WriteLine("4 - Close developer tools.");
-                Console.Write("Your choice: ");
-                string entry = Console.ReadLine();
-                char choice = entry[0];
-                switch (choice)
+                if (File.Exists(files[i]) == false)
                 {
-                    case '1':
-                        checkInternalDatabase();
-                        break;
-                    case '2':
-                        deleteFromInternalDatabase();
-                        break;
-                    case '3':
-                        wipeInternalDatabase();
-                        break;
-                    default:
-                        return;
+                    isFileMissing = true;
+                    missingIndices.Add(i);
                 }
             }
-        }
-
-        private void checkInternalDatabase()
-        {
-            Console.WriteLine("1 - Lists the routes part of internal database.");
-            Console.WriteLine("2 - Lists the vehicles part of internal database.");
-            Console.WriteLine("3 - Checks if given route or vehicle is defined in database.");
-            Console.WriteLine("4 - Close this mode.");
-            Console.Write("Your choice: ");
-            string entry = Console.ReadLine();
-            char choice = entry[0];
-            try
+            if (isFileMissing)
             {
-                switch (choice)
+                Console.WriteLine("Some of the depending files for the application are missing. Would you like to create them?");
+                Console.Write("Your choice(yes/no)? ");
+                string choice = Console.ReadLine();
+                if (choice.ToLower().Equals("yes"))
                 {
-                    case '1':
-                        TypeDatabase routesDatabase = new TypeDatabase("routesDatabase.txt");
-                        routesDatabase.loadDatabase();
-                        routesDatabase.listDatabase();
-                        break;
-                    case '2':
-                        TypeDatabase vehiclesDatabase = new TypeDatabase("vehiclesDatabase.txt");
-                        vehiclesDatabase.loadDatabase();
-                        vehiclesDatabase.listDatabase();
-                        break;
-                    case '3':
-                        Console.WriteLine("Enter route or vehicle number: ");
-                        string evidence = Console.ReadLine();
-                        identifyAndCheckEntry(evidence);
-                        break;
-                    default:
-                        return;
+                    foreach (int index in missingIndices)
+                    {
+                        File.Create(files[index]);
+                    }
+                    return true;
                 }
+                else
+                    return false;
             }
-            catch (FileNotFoundException)
-            {
-                Console.WriteLine("One or more files associated with listing could not be found.");
-                return;
-            }
-        }
-
-        private void identifyAndCheckEntry(string entry)
-        {
-            string type = identifyEntry(entry);
-            TypeDatabase database;
-            if (type.Equals("route"))
-                database = new TypeDatabase("routesDatabase.txt");
             else
-                database = new TypeDatabase("vehiclesDatabase.txt");
-            try
-            {
-                database.loadDatabase();
-            }
-            catch(FileNotFoundException)
-            {
-                Console.WriteLine("One or more files associated with listing could not be found.");
-                return;
-            }
-            try
-            {
-                Types entryType = database.getType(entry);
-                Console.WriteLine("Given entry is listed in database as: " + entryType + ".");
-            }
-            catch (TypeDatabase.DatabaseError)
-            {
-                Console.WriteLine("Given entry is not listed in the database.");
-            }
-        }
-
-        private string identifyEntry(string entry)
-        {
-            string entryPart;
-            if (entry.Contains("+"))
-                entryPart = entry.Split('+')[0];
-            else
-                entryPart = entry;
-            int parseInt;
-            if (int.TryParse(entry, out parseInt))
-                if (parseInt > 100)
-                    return "vehicle";
-
-            return "route";
-        }
-
-        private void deleteFromInternalDatabase()
-        {
-            Console.Write("Write the route or vehicle you want to delete from the database: ");
-            string entry = Console.ReadLine();
-            string type = identifyEntry(entry);
-            TypeDatabase database;
-            if (type.Equals("route"))
-                database = new TypeDatabase("routesDatabase.txt");
-            else
-                database = new TypeDatabase("vehiclesDatabase.txt");
-            try
-            {
-                database.loadDatabase();
-            }
-            catch (FileNotFoundException)
-            {
-                Console.WriteLine("One or more files associated with listing could not be found.");
-                return;
-            }
-            string[] args = new string[2];
-            args[0] = entry;
-            args[1] = database.getType(entry).ToString();
-            database.deleteFromDatabase(args);
-        }
-
-        private void wipeInternalDatabase()
-        {
-            Console.WriteLine("You have chosen to delete all current data from database and listing files.");
-            Console.WriteLine("Do you want to proceed? yes/no");
-            string line = Console.ReadLine();
-            if (line.ToLower() == "yes")
-            {
-                wipeFile("routesDatabase.txt");
-                wipeFile("vehiclesDatabase.txt");
-                wipeFile("raw" + DateTime.Today.Year + ".txt");
-                wipeFile("vehicles" + DateTime.Today.Year + ".txt");
-                wipeFile("routes" + DateTime.Today.Year + ".txt");
-                wipeFile("data" + DateTime.Today.Year + ".txt");
-                Console.WriteLine("All database and listing files are now clean.");
-            }
-        }
-        private void wipeFile(string fileName)
-        {
-            FileStream stream = new FileStream(fileName, FileMode.Truncate, FileAccess.Write);
-            StreamWriter writer = new StreamWriter(stream);
-            writer.Close();
-            stream.Close();
+                return true;
         }
     }
 }

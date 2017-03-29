@@ -41,7 +41,7 @@ namespace MHDDatabase
                 int routeTypeIndex = detectRouteTypeIndex(entry, vehicleTypeIndex);
                 string[] vehicleParts = entry.arguments.Take(vehicleTypeIndex).ToArray();
                 string[] routeParts = entry.arguments.Skip(vehicleTypeIndex).Take(routeTypeIndex - vehicleTypeIndex).ToArray();
-                string[] rest = entry.arguments.Skip(vehicleTypeIndex + routeTypeIndex).ToArray();
+                string[] rest = entry.arguments.Skip(routeTypeIndex).ToArray();
                 try
                 {
                     processVehiclePart(vehicleParts, vehicles);
