@@ -9,7 +9,7 @@ namespace MHDDatabase
     class Queue
     {
         class EntryProccessingFailed : Exception{ }
-        public List<Entry> queuedEntries { get; private set; }
+        public List<Entry> queuedEntries { get; set; }
         public List<Entry> failedEntries { get; private set; }
         public List<string> processedEntries { get; private set; }
 
@@ -62,6 +62,40 @@ namespace MHDDatabase
             updatedRoutes = routes;
             updatedVehicles = vehicles;
             updatedPassingData = passingData;
+        }
+
+        public void processQueue(out List<Vehicle> vehicles, out List<Route> routes, out int[] passingData)
+        {
+            vehicles = new List<Vehicle>();
+            routes = new List<Route>();
+            passingData = new int[2];
+            foreach (Entry entry in queuedEntries)
+            {
+                List<Route> routesBackup = cloneRouteList(routes);
+                List<Vehicle> vehiclesBackup = cloneVehicleList(vehicles);
+                int[] passingDataBackup = new int[] { passingData[0], passingData[1] };
+
+                int vehicleTypeIndex = detectVehicleTypeIndex(entry);
+                int routeTypeIndex = detectRouteTypeIndex(entry, vehicleTypeIndex);
+                string[] vehicleParts = entry.arguments.Take(vehicleTypeIndex).ToArray();
+                string[] routeParts = entry.arguments.Skip(vehicleTypeIndex).Take(routeTypeIndex - vehicleTypeIndex).ToArray();
+                string[] rest = entry.arguments.Skip(routeTypeIndex).ToArray();
+                try
+                {
+                    processVehiclePart(vehicleParts, vehicles);
+                    processRoutePart(routeParts, routes);
+                    processRest(rest, passingData);
+                }
+                catch (EntryProccessingFailed)
+                {
+                    routes = routesBackup;
+                    vehicles = vehiclesBackup;
+                    passingData = passingDataBackup;
+                    failedEntries.Add(entry);
+                    continue;
+                }
+                saveProcessedEntry(vehicleParts, routeParts, rest);
+            }
         }
 
         private int detectVehicleTypeIndex(Entry entry)

@@ -9,7 +9,10 @@ namespace MHDDatabase
 {
     class Application
     {
-        string version = "v1.3.4";
+        string version = "v1.4.0";
+        List<Vehicle> historyVehicles;
+        List<Route> historyRoutes;
+        int[] historyPassingData;
         public void run()
         {
             bool applicationQuitTrigger = false;
@@ -106,7 +109,103 @@ namespace MHDDatabase
 
         private void runFileLoading()
         {
-            throw new NotImplementedException();
+            while (true)
+            {
+                Console.WriteLine("Welcome to data history mode. Please choose one of the following options: ");
+                Console.WriteLine("1 - Load data from specific year.");
+                Console.WriteLine("2 - List loaded data.");
+                Console.WriteLine("3 - Quit data history mode.");
+                Console.Write("Your choice: ");
+                string entry = Console.ReadLine();
+                char choice = entry[0];
+                switch (choice)
+                {
+                    case '1':
+                        loadSpecificFile(out historyVehicles, out historyRoutes, out historyPassingData);
+                        break;
+                    case '2':
+                        listLoadedData(historyVehicles, historyRoutes, historyPassingData);
+                        break;
+                    case '3':
+                        return;
+                }
+            }
+        }
+
+        private void loadSpecificFile(out List<Vehicle> vehicles, out List<Route> routes, out int[] passingData)
+        {
+            Console.WriteLine("Enter year from which you want to load data.");
+            Console.Write("Year: ");
+            string year = Console.ReadLine();
+            string fileName = "raw" + year + ".txt";
+            DataUploader uploader = new DataUploader();
+            Queue queue = uploader.fileLoadingMode(fileName);
+            queue.processQueue(out vehicles, out routes, out passingData);
+            if(queue.failedEntries.Count > 0)
+                fixFailedEntries(queue);
+        }
+
+        private void fixFailedEntries(Queue queue)
+        {
+            Console.WriteLine("Some of the entries were not processed.");
+            Console.WriteLine("Most common problems are typos or missing types in the database.");
+            Console.WriteLine("For each of the failed entries, please write a correct equivalent.");
+            List<Entry> correctEntries = new List<Entry>();
+            foreach (Entry failed in queue.failedEntries)
+            {
+                Console.WriteLine(failed.ToString());
+                Console.Write("Correction: ");
+                Entry correct = new Entry(Console.ReadLine().Split(' '));
+                if (correct.arguments[0].ToLower().Equals("bugged") || correct.arguments[0].ToLower().Equals("bug"))
+                    continue;
+                else
+                    correctEntries.Add(correct);
+            }
+            Queue newQueue = new Queue();
+            newQueue.queuedEntries = correctEntries;
+            List<Vehicle> historyFixedVehicles = new List<Vehicle>();
+            List<Route> historyFixedRoutes = new List<Route>();
+            int[] historyFixedPassingData = new int[2];
+            newQueue.processQueue(out historyFixedVehicles, out historyFixedRoutes, out historyFixedPassingData);
+            mergeVehicleLists(historyFixedVehicles);
+            mergeRouteLists(historyFixedRoutes);
+            mergeData(historyFixedPassingData);
+        }
+
+        private void mergeVehicleLists(List<Vehicle> fixedList)
+        {
+            foreach (Vehicle vehicle in fixedList)
+            {
+                if (historyVehicles.Exists(v => v.vehicle == vehicle.vehicle))
+                    historyVehicles.Find(v => v.vehicle == vehicle.vehicle).amount += vehicle.amount;
+                else
+                    historyVehicles.Add(vehicle);
+            }
+        }
+
+        private void mergeRouteLists(List<Route> fixedList)
+        {
+            foreach (Route route in fixedList)
+            {
+                if (historyRoutes.Exists(r => r.route == route.route))
+                    historyRoutes.Find(r => r.route == route.route).amount += route.amount;
+                else
+                    historyRoutes.Add(route);
+            }
+        }
+
+        private void mergeData(int[] fixedData)
+        {
+            historyPassingData[0] += fixedData[0];
+            historyPassingData[1] += fixedData[1];
+        }
+
+        private void listLoadedData(List<Vehicle> vehicles, List<Route> routes, int[] passingData)
+        {
+            Listing listing = new Listing(routes, vehicles, passingData);
+            listing.listRoutes();
+            listing.listVehicles();
+            listing.listData();
         }
 
         private void runListingMode()

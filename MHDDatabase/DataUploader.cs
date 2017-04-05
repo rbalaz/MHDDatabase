@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace MHDDatabase
@@ -78,6 +78,44 @@ namespace MHDDatabase
             }
 
             return vehicleIndices;
+        }
+
+        public Queue fileLoadingMode(string fileName)
+        {
+            FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            StreamReader reader = new StreamReader(stream);
+            string line;
+            Queue queue = new Queue();
+            while ((line = reader.ReadLine()) != null)
+            {
+                string[] segments = line.Split(' ');
+                List<int> vehicleIndices = detectVehicles(segments);
+                if (vehicleIndices.Count == 0 || vehicleIndices[vehicleIndices.Count - 1] == segments.Length - 1)
+                {
+                    Console.WriteLine("Most recent entry was not queued due to bad format.");
+                    continue;
+                }
+                int actualIndex = 0;
+                while (actualIndex < segments.Length - 1)
+                {
+                    if (vehicleIndices.IndexOf(actualIndex) < vehicleIndices.Count - 1)
+                    {
+                        int endIndex = vehicleIndices[vehicleIndices.IndexOf(actualIndex) + 1];
+                        Entry entry = new Entry(segments.Skip(actualIndex).Take(endIndex - actualIndex).ToArray());
+                        queue.queuedEntries.Add(entry);
+                        actualIndex = endIndex;
+                    }
+                    else
+                    {
+                        int endIndex = segments.Length;
+                        Entry entry = new Entry(segments.Skip(actualIndex).Take(endIndex - actualIndex).ToArray());
+                        queue.queuedEntries.Add(entry);
+                        actualIndex = endIndex;
+                    }
+                }
+            }
+
+            return queue;
         }
     }
 }
