@@ -13,7 +13,8 @@ namespace MHDDatabase
         {
             if (File.Exists(filePath) == false)
             {
-                File.Create(filePath);
+                FileStream stream = File.Create(filePath);
+                stream.Close();
                 return new List<Route>();
             }
             else
@@ -45,7 +46,8 @@ namespace MHDDatabase
         {
             if (File.Exists(filePath) == false)
             {
-                File.Create(filePath);
+                FileStream stream = File.Create(filePath);
+                stream.Close();
                 return new List<Vehicle>();
             }
             else
@@ -77,7 +79,8 @@ namespace MHDDatabase
         {
             if (File.Exists(filePath) == false)
             {
-                File.Create(filePath);
+                FileStream stream = File.Create(filePath);
+                stream.Close();
                 return new int[] { 0, 0 };
             }
             else

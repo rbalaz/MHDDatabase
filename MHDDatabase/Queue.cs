@@ -129,21 +129,34 @@ namespace MHDDatabase
                     return vehicleTypeIndex + 1;
             }               
         }
-
+        // Entry parts processing automatically assumes that if something is in the database, it will be also
+        // listed in vehicles or routes lists that belong to actual year. If used with historic data, where year entries
+        // for routes and vehicles are missing, it failes to process any data. 
         private void processVehiclePart(string[] vehicleParts, List<Vehicle> vehicles)
         {
+            TypeDatabase vehicleDatabase = new TypeDatabase("vehiclesDatabase.txt");
+            vehicleDatabase.loadDatabase();
             if (vehicleParts.Length == 0)
                 throw new EntryProccessingFailed();
             if (vehicleParts.Length == 1)
             {
-                if (vehicles.Exists(v => v.vehicle.Equals(vehicleParts[0])))
-                    vehicles.Find(v => v.vehicle.Equals(vehicleParts[0])).amount++;
+                if (vehicleDatabase.checkIfItemExistsInDatabase(vehicleParts[0]))
+                {
+                    if (vehicles.Exists(v => v.vehicle.Equals(vehicleParts[0])))
+                    {
+                        vehicles.Find(v => v.vehicle.Equals(vehicleParts[0])).amount++;
+                    }
+                    else
+                    {
+                        Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]), 1);
+                        vehicles.Add(vehicle);
+                    }
+                }
                 else
                     throw new EntryProccessingFailed();
             }
             else
             {
-                TypeDatabase vehicleDatabase = new TypeDatabase("vehiclesDatabase.txt");
                 vehicleDatabase.updateDatabase(new string[] { vehicleParts[0], vehicleParts[1] });
                 vehicleDatabase.loadDatabase();
                 Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]), 1);
@@ -153,18 +166,29 @@ namespace MHDDatabase
 
         private void processRoutePart(string[] routeParts, List<Route> routes)
         {
+            TypeDatabase routeDatabase = new TypeDatabase("routesDatabase.txt");
+            routeDatabase.loadDatabase();
             if (routeParts.Length == 0)
                 throw new EntryProccessingFailed();
             if (routeParts.Length == 1)
             {
-                if (routes.Exists(r => r.route.Equals(routeParts[0])))
-                    routes.Find(r => r.route.Equals(routeParts[0])).amount++;
+                if (routeDatabase.checkIfItemExistsInDatabase(routeParts[0]))
+                {
+                    if (routes.Exists(r => r.route.Equals(routeParts[0])))
+                    {
+                        routes.Find(r => r.route.Equals(routeParts[0])).amount++;
+                    }
+                    else
+                    {
+                        Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[0]), 1);
+                        routes.Add(newRoute);
+                    }
+                }
                 else
                     throw new EntryProccessingFailed();
             }
             else
             {
-                TypeDatabase routeDatabase = new TypeDatabase("routesDatabase.txt");
                 routeDatabase.updateDatabase(new string[] { routeParts[0], routeParts[1] });
                 routeDatabase.loadDatabase();
                 Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[0]), 1);

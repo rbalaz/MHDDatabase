@@ -70,6 +70,20 @@ namespace MHDDatabase
             throw new DatabaseError();
         }
 
+        public bool checkIfItemExistsInDatabase(string item)
+        {
+            if (busTypes.Exists(s => s.Equals(item)))
+                return true;
+            if (tramTypes.Exists(s => s.Equals(item)))
+                return true;
+            if (electroTypes.Exists(s => s.Equals(item)))
+                return true;
+            if (trolleyTypes.Exists(s => s.Equals(item)))
+                return true;
+
+            return false;
+        }
+
         public void updateDatabase(string[] entry)
         {
             loadDatabase();

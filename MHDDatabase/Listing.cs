@@ -14,8 +14,8 @@ namespace MHDDatabase
         private int[] passingData;
         public Listing(List<Route> routes, List<Vehicle> vehicles, int[] passingData)
         {
-            this.routes = routes;
-            this.vehicles = vehicles;
+            this.routes = routes.OrderByDescending(route => route.amount).ToList();
+            this.vehicles = vehicles.OrderByDescending(vehicle => vehicle.amount).ToList(); 
             this.passingData = passingData;
         }
 

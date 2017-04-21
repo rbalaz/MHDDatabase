@@ -9,7 +9,7 @@ namespace MHDDatabase
 {
     class Application
     {
-        string version = "v1.4.0";
+        string version = "v1.4.1";
         List<Vehicle> historyVehicles;
         List<Route> historyRoutes;
         int[] historyPassingData;
@@ -294,7 +294,8 @@ namespace MHDDatabase
                 {
                     foreach (int index in missingIndices)
                     {
-                        File.Create(files[index]);
+                        FileStream stream = File.Create(files[index]);
+                        stream.Close();
                     }
                     return true;
                 }
