@@ -129,9 +129,7 @@ namespace MHDDatabase
                     return vehicleTypeIndex + 1;
             }               
         }
-        // Entry parts processing automatically assumes that if something is in the database, it will be also
-        // listed in vehicles or routes lists that belong to actual year. If used with historic data, where year entries
-        // for routes and vehicles are missing, it failes to process any data. 
+
         private void processVehiclePart(string[] vehicleParts, List<Vehicle> vehicles)
         {
             TypeDatabase vehicleDatabase = new TypeDatabase("vehiclesDatabase.txt");
@@ -157,10 +155,15 @@ namespace MHDDatabase
             }
             else
             {
-                vehicleDatabase.updateDatabase(new string[] { vehicleParts[0], vehicleParts[1] });
-                vehicleDatabase.loadDatabase();
-                Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]), 1);
-                vehicles.Add(vehicle);
+                if (vehicleDatabase.checkIfItemExistsInDatabase(vehicleParts[0]))
+                    vehicles.Find(v => v.vehicle.Equals(vehicleParts[0])).amount++;
+                else
+                {
+                    vehicleDatabase.updateDatabase(new string[] { vehicleParts[0], vehicleParts[1] });
+                    vehicleDatabase.loadDatabase();
+                    Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]), 1);
+                    vehicles.Add(vehicle);
+                }
             }
         }
 
@@ -189,10 +192,15 @@ namespace MHDDatabase
             }
             else
             {
-                routeDatabase.updateDatabase(new string[] { routeParts[0], routeParts[1] });
-                routeDatabase.loadDatabase();
-                Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[0]), 1);
-                routes.Add(newRoute);
+                if (routeDatabase.checkIfItemExistsInDatabase(routeParts[0]))
+                    routes.Find(r => r.route.Equals(routeParts[0])).amount++;
+                else
+                {
+                    routeDatabase.updateDatabase(new string[] { routeParts[0], routeParts[1] });
+                    routeDatabase.loadDatabase();
+                    Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[0]), 1);
+                    routes.Add(newRoute);
+                }
             }
         }
 
@@ -202,7 +210,7 @@ namespace MHDDatabase
             {
                 if (rest[0].Equals("P"))
                     passingData[0]++;
-                else
+                else if (rest[0].Equals("N"))
                     passingData[1]++;
             }
         }
@@ -228,7 +236,7 @@ namespace MHDDatabase
         private void saveProcessedEntry(string[] vehicleParts, string[] routeParts, string[] rest)
         {
             if (rest.Length != 0)
-                processedEntries.Add(vehicleParts[0] + " " + routeParts[0] + rest);
+                processedEntries.Add(vehicleParts[0] + " " + routeParts[0] + " " + rest[0]);
             else
                 processedEntries.Add(vehicleParts[0] + " " + routeParts[0]);
         }
