@@ -9,7 +9,7 @@ namespace MHDDatabase
 {
     class Application
     {
-        string version = "v1.4.1";
+        string version = "v1.4.2";
         List<Vehicle> historyVehicles;
         List<Route> historyRoutes;
         int[] historyPassingData;
