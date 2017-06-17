@@ -22,7 +22,7 @@ namespace MHDDatabase
         public void listVehicles()
         {
             Console.WriteLine("Listing vehicles in descending order from the most used vehicle:");
-            
+
             List<Vehicle> buses = vehicles.Where(vehicle => vehicle.type == Types.Bus).ToList();
             Console.WriteLine(">>>>Buses<<<<");
             foreach (Vehicle vehicle in buses)
@@ -42,6 +42,7 @@ namespace MHDDatabase
             Console.WriteLine(">>>>Electrobuses<<<<");
             foreach (Vehicle vehicle in electrobuses)
                 Console.WriteLine("Evidence number: " + vehicle.vehicle + " Times travelled: " + vehicle.amount);
+            Console.WriteLine("Total times tralleved: " + vehicles.Sum(vehicle => vehicle.amount) + ".");
         }
 
         public void listRoutes()
@@ -62,6 +63,7 @@ namespace MHDDatabase
             Console.WriteLine(">>>>Trolleybus routes<<<<");
             foreach (Route route in trolleyRoutes)
                 Console.WriteLine("Route number: " + route.route + " Times travelled: " + route.amount);
+            Console.WriteLine("Total times tralleved: " + routes.Sum(route => route.amount) + ".");
         }
 
         public void listData()
@@ -191,6 +193,7 @@ namespace MHDDatabase
             }
             else
                 writer.WriteLine("Percentual chance to pass through the crossroads: N/A");
+            writer.WriteLine("Total times travelled: " + routes.Sum(route => route.amount) + ".");
             writer.Close();
             stream.Close();
             Console.WriteLine("Report successfully generated.");
