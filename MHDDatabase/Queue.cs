@@ -156,7 +156,17 @@ namespace MHDDatabase
             else
             {
                 if (vehicleDatabase.checkIfItemExistsInDatabase(vehicleParts[0]))
-                    vehicles.Find(v => v.vehicle.Equals(vehicleParts[0])).amount++;
+                {
+                    if (vehicles.Exists(v => v.vehicle.Equals(vehicleParts[0])))
+                    {
+                        vehicles.Find(v => v.vehicle.Equals(vehicleParts[0])).amount++;
+                    }
+                    else
+                    {
+                        Vehicle vehicle = new Vehicle(vehicleParts[0], vehicleDatabase.getType(vehicleParts[0]), 1);
+                        vehicles.Add(vehicle);
+                    }
+                }
                 else
                 {
                     vehicleDatabase.updateDatabase(new string[] { vehicleParts[0], vehicleParts[1] });
@@ -193,7 +203,17 @@ namespace MHDDatabase
             else
             {
                 if (routeDatabase.checkIfItemExistsInDatabase(routeParts[0]))
-                    routes.Find(r => r.route.Equals(routeParts[0])).amount++;
+                {
+                    if (routes.Exists(r => r.route.Equals(routeParts[0])))
+                    {
+                        routes.Find(r => r.route.Equals(routeParts[0])).amount++;
+                    }
+                    else
+                    {
+                        Route newRoute = new Route(routeParts[0], routeDatabase.getType(routeParts[0]), 1);
+                        routes.Add(newRoute);
+                    }
+                }
                 else
                 {
                     routeDatabase.updateDatabase(new string[] { routeParts[0], routeParts[1] });
