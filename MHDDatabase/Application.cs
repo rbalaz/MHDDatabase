@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
 namespace MHDDatabase
 {
     class Application
     {
-        string version = "v1.4.3.1";
+        string version = "v3.5.0";
         List<Vehicle> historyVehicles;
         List<Route> historyRoutes;
         int[] historyPassingData;
@@ -217,9 +214,8 @@ namespace MHDDatabase
             string year = Console.ReadLine();
             try
             {
-                listing = new Listing(loader.loadRoutes("routes" + year + ".txt"), loader.loadVehicles("vehicles" + year +".txt"),
-                    loader.loadPercentage("data" + year + ".txt"));
-
+                listing = new Listing(loader.loadRoutes(year + @"\routes" + year + ".txt"), 
+                    loader.loadVehicles(year + @"\vehicles" + year +".txt"), loader.loadPercentage(year + @"\data" + year + ".txt"));
                 while (!(listingModeQuitTrigger))
                 {
                     Console.WriteLine("You have chosen the listing mode. Please choose one of the listing modes.");
@@ -227,7 +223,8 @@ namespace MHDDatabase
                     Console.WriteLine("2 - Vehicle listing mode.");
                     Console.WriteLine("3 - Passing data listing.");
                     Console.WriteLine("4 - Full listing mode.");
-                    Console.WriteLine("5 - Quit listing mode.");
+                    Console.WriteLine("5 - Filtered listing mode.");
+                    Console.WriteLine("6 - Quit listing mode.");
                     Console.Write("Your choice: ");
                     string entry = Console.ReadLine();
                     char choice = entry[0];
@@ -247,6 +244,9 @@ namespace MHDDatabase
                             listing.listVehicles();
                             listing.listData();
                             break;
+                        case '5':
+                            listing.filteredListing();
+                            break;
                         default:
                             listingModeQuitTrigger = true;
                             break;
@@ -264,17 +264,15 @@ namespace MHDDatabase
             }
         }
 
-
-
         private bool checkIfVitalFilesExist()
         {
             string[] files = new string[6];
             files[0] = "routesDatabase.txt";
             files[1] = "vehiclesDatabase.txt";
-            files[2] = "data" + DateTime.Today.Year + ".txt";
-            files[3] = "raw" + DateTime.Today.Year + ".txt";
-            files[4] = "routes" + DateTime.Today.Year + ".txt";
-            files[5] = "vehicles" + DateTime.Today.Year + ".txt";
+            files[2] = DateTime.Today.Year + @"\data" + DateTime.Today.Year + ".txt";
+            files[3] = DateTime.Today.Year + @"\raw" + DateTime.Today.Year + ".txt";
+            files[4] = DateTime.Today.Year + @"\routes" + DateTime.Today.Year + ".txt";
+            files[5] = DateTime.Today.Year + @"\vehicles" + DateTime.Today.Year + ".txt";
             bool isFileMissing = false;
             List<int> missingIndices = new List<int>();
             for(int i = 0; i < files.Length; i++)
@@ -292,6 +290,8 @@ namespace MHDDatabase
                 string choice = Console.ReadLine();
                 if (choice.ToLower().Equals("yes"))
                 {
+                    if (Directory.Exists(DateTime.Today.Year + "") == false)
+                        Directory.CreateDirectory(DateTime.Today.Year + "");
                     foreach (int index in missingIndices)
                     {
                         FileStream stream = File.Create(files[index]);

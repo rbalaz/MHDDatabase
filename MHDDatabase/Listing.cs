@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
 namespace MHDDatabase
@@ -197,6 +195,87 @@ namespace MHDDatabase
             writer.Close();
             stream.Close();
             Console.WriteLine("Report successfully generated.");
+        }
+
+        public void filteredListing()
+        {
+            Console.WriteLine("Welcome to filtered listing mode."); 
+            Console.WriteLine("To proceed, please enter a filter for listing.");
+            Console.WriteLine("Filter format: 0-9 permanent, * - can change");
+            Console.WriteLine("Example: 57** will list all vehicles from 5700 to 5799.");
+            Console.Write("Filter: ");
+            string filter = Console.ReadLine();
+            Console.WriteLine("Specify to which data type should the filter be applied to.");
+            Console.Write("Data type(vehicles/routes): ");
+            string dataType = Console.ReadLine();
+            Console.WriteLine("Do you want to have the data ordered by evidence numbers?(yes/no)");
+            string orderType = Console.ReadLine();
+            if (checkFilters(filter, dataType, orderType) == false)
+            {
+                Console.WriteLine("Given filters have illegal format.");
+                return;
+            }
+            Console.WriteLine(">>>Listing data according to given filter<<<");
+            if (dataType.ToLower().Equals("vehicles"))
+            {
+                List<Vehicle> filteredVehicles = new List<Vehicle>();
+                foreach (Vehicle vehicle in vehicles)
+                {
+                    if (dataFitsFilter(filter, vehicle.vehicle))
+                        filteredVehicles.Add(vehicle);
+                }
+                if (orderType.Equals("yes"))
+                    filteredVehicles = filteredVehicles.OrderByDescending(vehicle => vehicle.vehicle).ToList();
+
+                foreach(Vehicle vehicle in filteredVehicles)
+                    Console.WriteLine("Evidence number: " + vehicle.vehicle + " Times travelled: " + vehicle.amount);
+            }
+            if (dataType.ToLower().Equals("routes"))
+            {
+                List<Route> filteredRoutes = new List<Route>();
+                foreach (Route route in routes)
+                {
+                    if (dataFitsFilter(filter, route.route))
+                        filteredRoutes.Add(route);
+                }
+                if (orderType.Equals("yes"))
+                    filteredRoutes = filteredRoutes.OrderByDescending(route => route.route).ToList();
+
+                foreach (Route route in filteredRoutes)
+                    Console.WriteLine("Evidence number: " + route.route + " Times travelled: " + route.amount);
+            }
+        }
+
+        private bool checkFilters(string filter, string dataType, string orderType)
+        {
+            for (int i = 0; i < filter.Length; i++)
+            {
+                if (char.IsLetterOrDigit(filter[i]) == false && filter[i] != '*')
+                    return false;
+            }
+
+            if (dataType.ToLower().Equals("vehicles") == false && dataType.ToLower().Equals("routes") == false)
+                return false;
+
+            if (orderType.ToLower().Equals("yes") == false && orderType.ToLower().Equals("no") == false)
+                return false;
+
+            return true;
+        }
+
+        private bool dataFitsFilter(string filter, string data)
+        {
+            if (filter.Length != data.Length)
+                return false;
+            for (int i = 0; i < filter.Length; i++)
+            {
+                if (filter[i] != '*')
+                {
+                    if (filter[i] != data[i])
+                        return false;
+                }
+            }
+            return true;
         }
     }
 }

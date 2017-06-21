@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MHDDatabase
 {
@@ -19,7 +17,7 @@ namespace MHDDatabase
         public void saveVehicles(List<Vehicle> vehicles)
         {
             vehicles = vehicles.OrderByDescending(vehicle => vehicle.amount).ToList();
-            FileStream stream = new FileStream("vehicles" + year + ".txt", FileMode.Create, FileAccess.Write);
+            FileStream stream = new FileStream(year + @"\vehicles" + year + ".txt", FileMode.Create, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
             foreach (Vehicle vehicle in vehicles)
             {
@@ -32,7 +30,7 @@ namespace MHDDatabase
         public void saveRoutes(List<Route> routes)
         {
             routes = routes.OrderByDescending(route => route.amount).ToList();
-            FileStream stream = new FileStream("routes" + year + ".txt", FileMode.Create, FileAccess.Write);
+            FileStream stream = new FileStream(year + @"\routes" + year + ".txt", FileMode.Create, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
             foreach (Route route in routes)
             {
@@ -44,7 +42,7 @@ namespace MHDDatabase
 
         public void savePercentage(int[] passingData)
         {
-            FileStream stream = new FileStream("data" + year + ".txt", FileMode.Create, FileAccess.Write);
+            FileStream stream = new FileStream(year + @"\data" + year + ".txt", FileMode.Create, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
 
             writer.WriteLine("Rate of passes at Magistrate crossroads:");
@@ -57,9 +55,9 @@ namespace MHDDatabase
 
         public void saveProcessedEntries(List<string> processedEntries)
         {
-            if (File.Exists("raw" + year + ".txt") == false)
-                File.Create("raw" + year + ".txt");
-            FileStream stream = new FileStream("raw" + year + ".txt", FileMode.Append, FileAccess.Write);
+            if (File.Exists(year + @"\raw" + year + ".txt") == false)
+                File.Create(year + @"\raw" + year + ".txt");
+            FileStream stream = new FileStream(year + @"\raw" + year + ".txt", FileMode.Append, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
 
             foreach (string entry in processedEntries)
