@@ -39,7 +39,7 @@ namespace MHDDatabase
                         break;
                     default:
                         applicationQuitTrigger = true;
-                        break;     
+                        break;
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace MHDDatabase
             DataUploader uploader = new DataUploader();
             Queue queue = uploader.fileLoadingMode(fileName);
             queue.processQueue(out vehicles, out routes, out passingData);
-            if(queue.failedEntries.Count > 0)
+            if (queue.failedEntries.Count > 0)
                 fixFailedEntries(queue);
         }
 
@@ -210,12 +210,17 @@ namespace MHDDatabase
             bool listingModeQuitTrigger = false;
             DataLoader loader = new DataLoader();
             Listing listing;
-            Console.WriteLine("You have chosen the listing mode. Please write the year from which you want data to be listed:");
-            string year = Console.ReadLine();
+            Console.WriteLine("You have chosen the listing mode. Please write the years from which you want data to be listed.");
+            Console.WriteLine("For continual years span, use - symbol for the interval: 2012-2014");
+            Console.WriteLine("Seperate more years using blank spaces or commas: 2013,2012 2015");
+            string yearString = Console.ReadLine();
+            string[] years = splitYearString(yearString);
             try
             {
-                listing = new Listing(loader.loadRoutes(year + @"\routes" + year + ".txt"), 
-                    loader.loadVehicles(year + @"\vehicles" + year +".txt"), loader.loadPercentage(year + @"\data" + year + ".txt"));
+                listing = new Listing(loader.loadRoutes(years),
+                    loader.loadVehicles(years), 
+                    loader.loadPercentage(years));
+
                 while (!(listingModeQuitTrigger))
                 {
                     Console.WriteLine("You have chosen the listing mode. Please choose one of the listing modes.");
@@ -275,7 +280,7 @@ namespace MHDDatabase
             files[5] = DateTime.Today.Year + @"\vehicles" + DateTime.Today.Year + ".txt";
             bool isFileMissing = false;
             List<int> missingIndices = new List<int>();
-            for(int i = 0; i < files.Length; i++)
+            for (int i = 0; i < files.Length; i++)
             {
                 if (File.Exists(files[i]) == false)
                 {
@@ -304,6 +309,30 @@ namespace MHDDatabase
             }
             else
                 return true;
+        }
+
+        private string[] splitYearString(string year)
+        {
+            // Check if string is interval
+            bool isInterval = (year.IndexOf('-') != -1);
+            bool isSet = (year.IndexOf(' ') != -1) || (year.IndexOf(',') != -1);
+            if (isInterval)
+            {
+                string[] fragments = year.Split('-');
+                int lowerBoundary = int.Parse(fragments[0]);
+                int upperBoundary = int.Parse(fragments[1]);
+                string[] years = new string[upperBoundary - lowerBoundary + 1];
+                for (int i = lowerBoundary; i <= upperBoundary; i++)
+                    years[i - lowerBoundary] = lowerBoundary + "";
+
+                return years;
+            }
+            // Check if string contains multiple years
+            if (isSet)
+                return year.Split(new char[] { '-', ' ' });
+
+            // Otherwise its expected that just one year is the output
+            return new string[] { year };
         }
     }
 }
