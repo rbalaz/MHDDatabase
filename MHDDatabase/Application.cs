@@ -6,10 +6,12 @@ namespace MHDDatabase
 {
     class Application
     {
-        string version = "v3.5.0";
-        List<Vehicle> historyVehicles;
-        List<Route> historyRoutes;
-        int[] historyPassingData;
+        private string version = "v3.5.0";
+        private List<Vehicle> historyVehicles;
+        private List<Route> historyRoutes;
+        private int[] historyPassingData;
+        private string year = "";
+
         public void run()
         {
             bool applicationQuitTrigger = false;
@@ -111,7 +113,8 @@ namespace MHDDatabase
                 Console.WriteLine("Welcome to data history mode. Please choose one of the following options: ");
                 Console.WriteLine("1 - Load data from specific year.");
                 Console.WriteLine("2 - List loaded data.");
-                Console.WriteLine("3 - Quit data history mode.");
+                Console.WriteLine("3 - Save loaded data.");
+                Console.WriteLine("4 - Quit data history mode.");
                 Console.Write("Your choice: ");
                 string entry = Console.ReadLine();
                 char choice = entry[0];
@@ -124,6 +127,19 @@ namespace MHDDatabase
                         listLoadedData(historyVehicles, historyRoutes, historyPassingData);
                         break;
                     case '3':
+                        int intYear;
+                        if (int.TryParse(year, out intYear))
+                        {
+                            DataSaver saver = new DataSaver(int.Parse(year));
+                            saver.saveRoutes(historyRoutes);
+                            saver.saveVehicles(historyVehicles);
+                            saver.savePercentage(historyPassingData);
+                            Console.WriteLine("Data from year " + this.year + " successfully loaded.");
+                        }
+                        else
+                            Console.WriteLine("No history data to save.");
+                        break;
+                    case '4':
                         return;
                 }
             }
@@ -134,12 +150,14 @@ namespace MHDDatabase
             Console.WriteLine("Enter year from which you want to load data.");
             Console.Write("Year: ");
             string year = Console.ReadLine();
-            string fileName = "raw" + year + ".txt";
+            this.year = year;
+            string fileName = year + @"/raw" + year + ".txt";
             DataUploader uploader = new DataUploader();
             Queue queue = uploader.fileLoadingMode(fileName);
             queue.processQueue(out vehicles, out routes, out passingData);
             if (queue.failedEntries.Count > 0)
                 fixFailedEntries(queue);
+            Console.WriteLine("Data from year " + year + " successfully loaded.");
         }
 
         private void fixFailedEntries(Queue queue)
@@ -297,6 +315,7 @@ namespace MHDDatabase
                 {
                     if (Directory.Exists(DateTime.Today.Year + "") == false)
                         Directory.CreateDirectory(DateTime.Today.Year + "");
+
                     foreach (int index in missingIndices)
                     {
                         FileStream stream = File.Create(files[index]);
