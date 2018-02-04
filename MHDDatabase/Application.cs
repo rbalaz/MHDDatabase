@@ -6,7 +6,7 @@ namespace MHDDatabase
 {
     class Application
     {
-        private string version = "v3.5.0";
+        private string version = "v3.5.2";
         private List<Vehicle> historyVehicles;
         private List<Route> historyRoutes;
         private int[] historyPassingData;
@@ -278,13 +278,33 @@ namespace MHDDatabase
                 Console.WriteLine("Would you like to have a report generated?");
                 string answer = Console.ReadLine();
                 if (answer.ToLower().Equals("yes"))
-                    listing.generateReport();
+                {
+                    string currentYear = DateTime.Now.Year + "";
+                    if (years.Length > 1)
+                        listing.generateReport(chooseFinalYear(years));
+                    else if (currentYear.Equals(years[0]))
+                        listing.generateReport();
+                    else
+                        listing.generateReport(years[0]);
+                }
             }
             catch (FileNotFoundException)
             {
                 Console.WriteLine("One or more files associated with listing could not be found.");
                 return;
             }
+        }
+
+        private string chooseFinalYear(string[] years)
+        {
+            string finalYear = years[0];
+            for (int i = 1; i < years.Length; i++)
+            {
+                if (int.Parse(finalYear) < int.Parse(years[i]))
+                    finalYear = years[i];
+            }
+
+            return finalYear;
         }
 
         private bool checkIfVitalFilesExist()
